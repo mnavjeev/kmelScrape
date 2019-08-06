@@ -9,7 +9,7 @@ import warnings
 import os
 import html
 from os import path
-warnings.simplefilter(action='ignore', category=FutureWarning) 
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 url = 'https://kmel.iheart.com/music/recently-played/'
 
@@ -70,6 +70,15 @@ else:
     artistsMaster = np.array([])
     songsMaster = np.array([])
 
+if path.exists("KMEL_unique.csv"):
+    unique = pd.read_csv("KMEL_unique.csv")
+    songsUnique = np.array(unique.Song)
+    artistsUnique = np.array(unique.Artist)
+    timesUnique = np.array(unique.Time)
+else:
+    songsUnique = np.array([])
+    artistsUnique = np.array([])
+    timesUnique = np.array([])
 #count = 0
 #Try just keep running this and updating the csv
 while True:
@@ -82,6 +91,10 @@ while True:
             newTimes.append(times[i])
             newArtists.append(html.unescape(artists[i]).replace("&",","))
             newSongs.append(html.unescape(songs[i]))
+        if songs[i] not in songsUnique:
+            timesUnique = np.append(times[i], timesUnique)
+            artistsUnique = np.append(html.unescape(artists[i]).replace("&",","), artistsUnique)
+            songsUnique = np.append(songs[i], songsUnique)
     newTimes = np.array(newTimes)
     newArtists = np.array(newArtists)
     newSongs = np.array(newSongs)
@@ -89,5 +102,7 @@ while True:
     artistsMaster = np.append(newArtists, artistsMaster)
     songsMaster = np.append(newSongs, songsMaster)
     total = pd.DataFrame({'Time': timesMaster, 'Artist': artistsMaster, 'Song': songsMaster})
+    unique = pd.DataFrame({'Time': timesUnique, 'Artist': artistsUnique, 'Song': songsUnique})
     total.to_csv("KMEL_scraped.csv")
+    unique.to_csv("KMEL_unique.csv")
     time.sleep(60)
