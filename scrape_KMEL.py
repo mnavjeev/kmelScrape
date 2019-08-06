@@ -6,44 +6,10 @@ from contextlib import closing
 from bs4 import BeautifulSoup
 import time
 import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
-#Function Definitions
-def simple_get(url):
-    """
-    Attempts to get the content at `url` by making an HTTP GET request.
-    If the content-type of response is some kind of HTML/XML, return the
-    text content, otherwise return None.
-    """
-    try:
-        with closing(get(url, stream=True)) as resp:
-            if is_good_response(resp):
-                return resp.content
-            else:
-                return None
-
-    except RequestException as e:
-        log_error('Error during requests to {0} : {1}'.format(url, str(e)))
-        return None
-
-
-def is_good_response(resp):
-    """
-    Returns True if the response seems to be HTML, False otherwise.
-    """
-    content_type = resp.headers['Content-Type'].lower()
-    return (resp.status_code == 200
-            and content_type is not None
-            and content_type.find('html') > -1)
-
-
-def log_error(e):
-    """
-    It is always a good idea to log errors.
-    This function just prints them, but you can
-    make it do anything.
-    """
-    print(e)
-
+import os
+import html
+from os import path
+warnings.simplefilter(action='ignore', category=FutureWarning) 
 
 url = 'https://kmel.iheart.com/music/recently-played/'
 
@@ -94,22 +60,28 @@ def get_recent(url):
         artists.append(artist)
     return times, names, artists
 
-timesMaster = np.array([])
-artistsMaster = np.array([])
-songsMaster = np.array([])
+if path.exists("KMEL_scraped.csv"):
+    total = pd.read_csv("KMEL_scraped.csv")
+    timesMaster = np.array(total.Time)
+    artistsMaster = np.array(total.Artist)
+    songsMaster = np.array(total.Song)
+else:
+    timesMaster = np.array([])
+    artistsMaster = np.array([])
+    songsMaster = np.array([])
 
 #count = 0
 #Try just keep running this and updating the csv
 while True:
-    times, artists, songs = get_recent(url)
+    times, songs, artists = get_recent(url)
     newTimes = []
     newArtists = []
     newSongs = []
     for i in range(len(times)):
         if times[i] not in timesMaster:
             newTimes.append(times[i])
-            newArtists.append(artists[i])
-            newSongs.append(songs[i])
+            newArtists.append(html.unescape(artists[i]).replace("&",","))
+            newSongs.append(html.unescape(songs[i]))
     newTimes = np.array(newTimes)
     newArtists = np.array(newArtists)
     newSongs = np.array(newSongs)
