@@ -79,8 +79,8 @@ else:
     songsUnique = np.array([])
     artistsUnique = np.array([])
     timesUnique = np.array([])
-#count = 0
-#Try just keep running this and updating the csv
+
+#keep running this and updating the csv
 while True:
     times, songs, artists = get_recent(url)
     newTimes = []
@@ -95,6 +95,7 @@ while True:
             timesUnique = np.append(times[i], timesUnique)
             artistsUnique = np.append(html.unescape(artists[i]).replace("&",","), artistsUnique)
             songsUnique = np.append(songs[i], songsUnique)
+
     newTimes = np.array(newTimes)
     newArtists = np.array(newArtists)
     newSongs = np.array(newSongs)
